@@ -1,16 +1,21 @@
 [[local|localrc]]
 # Default passwords
-ADMIN_PASSWORD=password
-MYSQL_PASSWORD=password
-RABBIT_PASSWORD=password
-SERVICE_PASSWORD=password
-SERVICE_TOKEN=password
+ADMIN_PASSWORD=openstack
+MYSQL_PASSWORD=openstack
+RABBIT_PASSWORD=openstack
+SERVICE_PASSWORD=openstack
+SERVICE_TOKEN=tokentoken
 
 
 SCREEN_LOGDIR=/opt/stack/logs
 
+GIT_BASE={{ git_base }}
 
 HOST_IP={{ public_ip }}
+
+CIRROS_ARCH={{ cirros_arch }}
+
+USE_VENV=False
 
 {% if neutron %}
 #

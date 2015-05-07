@@ -1,6 +1,6 @@
 ---
 - name: workaround for https://bugs.launchpad.net/devstack/+bug/1243075
-  hosts: default
+  hosts: localhost
   gather_facts: False
 
   tasks:
