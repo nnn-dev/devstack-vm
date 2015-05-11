@@ -3,12 +3,21 @@
   vars:
     git_base: https://github.com
     public_ip: 192.168.27.100
-    version: "{{ ansible_env.OS_VERSION }}"
-    cirros_arch: "{{ ansible_env.CIRROS_ARCH }}"
+    version: master
+    cirros_arch: x86_64
     neutron: True
     swift: True
     security_groups: False
     tempest: False
+    trove: False
+    designate: False
+    ceilometer: False
+    designate_agent: False
+    designate_sink: False
+    neutron_lbaas: False
+    neutron_vpn: False
+    neutron_fwaas: False
+    ceph: False
     keyring_config_dir: /home/vagrant/.local/share/python_keyring
 
   tasks:
@@ -32,6 +41,14 @@
 
     - name: checkout devstack
       git: "repo={{ git_base }}/openstack-dev/devstack.git dest=/home/vagrant/devstack version={{ version }}"
+
+    - name: checkout designate
+      git: "repo={{ git_base }}/openstack/designate.git dest=/home/vagrant/designate version={{ version }}"
+      when: designate
+
+    - name: install designate extension
+      command: bash -c 'cd /home/vagrant/devstack; /home/vagrant/designate/contrib/devstack/install.sh'
+      when: designate
 
     - name: local.conf
       template: src=templates/local.conf.j2 dest=/home/vagrant/devstack/local.conf

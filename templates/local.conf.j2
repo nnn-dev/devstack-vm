@@ -1,3 +1,14 @@
+[[post-config|$NOVA_CONF]]
+[DEFAULT]
+vnc_keymap={{ vnc_keymap }}
+{% if ceilometer %}
+instance_usage_audit=true 
+
+[[post-config|$CINDER_CONF]]
+[DEFAULT]
+notification_driver=messagingv2
+{% endif %}
+
 [[local|localrc]]
 # Default passwords
 ADMIN_PASSWORD=openstack
@@ -5,6 +16,7 @@ MYSQL_PASSWORD=openstack
 RABBIT_PASSWORD=openstack
 SERVICE_PASSWORD=openstack
 SERVICE_TOKEN=tokentoken
+SWIFT_HASH=tokentoken
 
 
 SCREEN_LOGDIR=/opt/stack/logs
@@ -48,4 +60,58 @@ LIBVIRT_FIREWALL_DRIVER=nova.virt.firewall.NoopFirewallDriver
 
 {% if not tempest %}
 disable_service tempest
+{% endif %}
+
+{% if trove %}
+enable_service trove
+enable_service tr-api
+enable_service tr-tmgr
+enable_service tr-cond
+{% endif %}
+
+{% if ceilometer %}
+enable_service ceilometer-acompute ceilometer-acentral ceilometer-anotification ceilometer-collector
+enable_service ceilometer-alarm-evaluator,ceilometer-alarm-notifier
+enable_service ceilometer-api
+{% endif %}
+
+{% if ceph %}
+CEPH_LOOPBACK_DISK_SIZE=10G
+CEPH_CONF=/etc/ceph/ceph.conf
+CEPH_REPLICAS=1
+GLANCE_CEPH_USER=glancy
+GLANCE_CEPH_POOL=imajeez
+CINDER_DRIVER=ceph
+CINDER_CEPH_USER=cindy
+CINDER_CEPH_POOL=volumeuh
+CINDER_CEPH_UUID=6d52eb95-12f3-47e3-9eb9-0c1fe4142426
+CINDER_BAK_CEPH_POOL=backeups
+CINDER_BAK_CEPH_USER=cind-backeups
+CINDER_ENABLED_BACKENDS=ceph,lvm
+NOVA_CEPH_POOL=vmz
+enable_service ceph
+{% endif %}
+
+{% if neutron_lbaas %}
+enable_service q-lbaas
+{% endif %}
+
+{% if neutron_vpn %}
+enable_service q-vpn
+{% endif %}
+
+{% if neutron_fwaas %}
+enable_service q-fwaas
+{% endif %}
+
+{% if designate %}
+enable_service designate
+enable_service designate-api
+enable_service designate-central
+{% if designate_sink %}
+enable_service designate-sink
+{% endif %}
+{% if designate_agent %}
+enable_service designate-agent
+{% endif %}
 {% endif %}
