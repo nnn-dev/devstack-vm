@@ -5,7 +5,7 @@
 # processor arch bits (32/64)
 config_arch=32
 # virtual machine memory
-vm_memory=3000
+vm_memory=3200
 # openstack version
 os_version='stable/juno'
 # components to install
@@ -29,8 +29,8 @@ vnc_keymap='en-us'
 # <<< Configuration>>>
 
 #using proxy?
-#http_proxy=http://user:pass@password
-#http_proxys=http://user:pass@password
+#http_proxy=http://user:pass@url:port
+#https_proxy=http://user:pass@url:port
 #no_proxy=127.0.0.1,localhost,192.168.27.100
 #vagrant plugin install vagrant-proxyconf
 
