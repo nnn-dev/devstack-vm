@@ -73,7 +73,28 @@ enable_service trove
 enable_service tr-api
 enable_service tr-tmgr
 enable_service tr-cond
-TROVE_GUEST_IMAGE_URL=file:///opt/stack/trove.img
+TROVE_GUEST_IMAGE_URL=file:///opt/stack/images/ubuntu-{{ trove_db_name }}-{{ trove_db_version }}-guest-image.qcow2
+TROVE_DATASTORE_TYPE={{ trove_db_name }}
+TROVE_DATASTORE_VERSION={{ trove_db_version }}
+{% if trove_db_name == "mysql" %}
+TROVE_DATASTORE_PACKAGE=mysql-server-{{ trove_db_version }}
+{% endif %}
+{% if trove_db_name == "postgresql" %}
+TROVE_DATASTORE_PACKAGE=postgresql-{{ trove_db_version }}
+{% endif %}
+{% if trove_db_name == "cassandra" %}
+TROVE_DATASTORE_PACKAGE=cassandra={{ trove_db_version }}
+{% endif %}
+{% if trove_db_name == "mongodb" %}
+TROVE_DATASTORE_PACKAGE=mongodb-org-server=={{ trove_db_version }}
+{% endif %}
+{% if trove_db_name == "percona" %}
+TROVE_DATASTORE_PACKAGE=percona-server-server-{{ trove_db_version }}
+{% endif %}
+{% if trove_db_name == "redis" %}
+TROVE_DATASTORE_PACKAGE=redis-server={{ trove_db_version }}
+{% endif %}
+
 {% endif %}
 
 {% if ceilometer %}

@@ -20,6 +20,8 @@
     ceph: False
     use_lxc: False
     dib: True
+    trove_db_name: mysql
+    trove_db_version: 5.6
     keyring_config_dir: /opt/stack/.local/share/python_keyring
 
   tasks:
@@ -76,11 +78,8 @@
       when: dib
       
     - name: checkout trove-guest-image-elements
-      git: "repo={{ git_base }}/denismakogon/trove-guest-image-elements.git dest=/opt/stack/trove-guest-image-elements version=master"
+      git: "repo=https://github.com/nnn-dev/trove-guest-image-elements.git dest=/opt/stack/trove-guest-image-elements version=master"
       when: dib and trove
-      
-    - name: add percona key
-      apt_key: keyserver=pool.sks-keyservers.net id=1C4CBDCDC2EFD2A state=present
       
     - name: checkout designate
       git: "repo={{ git_base }}/openstack/designate.git dest=/opt/stack/designate version={{ version }}"
@@ -99,7 +98,12 @@
     - name: source openrc in profile
       lineinfile: dest=/home/vagrant/.profile regexp=".*openrc" line='. /home/vagrant/devstack/openrc'
 
+    - command: /bin/ip a show eth2
+      register: result
+      ignore_errors: True
+    
     - name: enable eth2
       command: ip link set dev eth2 up
       sudo: True
+      when: result|success
 
