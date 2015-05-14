@@ -14,7 +14,7 @@ os_components=[
     'swift',
 #    'security_groups',
 #    'tempest',
-#    'trove',
+    'trove',
 #    'ceilometer',
 #    'designate',
 #    'designate_agent',
@@ -102,9 +102,9 @@ Vagrant.configure("2") do |config|
 	SCRIPT
     if os_components.include?('trove')
      if config_arch == 32
-      dib_arch=i386
+      dib_arch='i386'
      else
-      dib_arch=amd64
+      dib_arch='amd64'
      end
      if vm_memory < 4096
       dib_notmpfs_opts='--no-tmpfs'
@@ -112,16 +112,16 @@ Vagrant.configure("2") do |config|
       dib_notmpfs_opts=''
      end
      config.vm.provision :shell, inline: <<-SCRIPT
-       export ELEMENTS_PATH=/opt/stack/tripleo-image-elements/elements
+       export ELEMENTS_PATH=/opt/stack/tripleo-image-elements/elements:/opt/stack/trove-guest-image-elements/elements
        export DIB_CLOUD_INIT_DATASOURCES="ConfigDrive"
        export DISTRO=ubuntu
        export IMAGE_NAME=/opt/stack/trove.img
-       local QEMU_IMG_OPTIONS=$(! $(qemu-img | grep -q 'version 1') && \
+       QEMU_IMG_OPTIONS=$(! $(qemu-img | grep -q 'version 1') && \
             echo "--qemu-img-options compat=0.10")
-       ${PATH_DISKIMAGEBUILDER}/bin/disk-image-create #{dib_notmpfs} -a #{dib_arch} -o "${IMAGE_NAME}" \
+       /opt/stack/diskimage-builder/bin/disk-image-create #{dib_notmpfs_opts} -a #{dib_arch} -o "${IMAGE_NAME}" \
      -x ${QEMU_IMG_OPTIONS} ${DISTRO} ${EXTRA_ELEMENTS} \
-     vm heat-cfntools cloud-init-datasources ${DISTRO}-guest \
-     ${DISTRO}-#{trove_db}
+     vm heat-cfntools cloud-init-datasources \
+         ${DISTRO}-#{trove_db}-guest-image
 	 SCRIPT
     end
     if use_lxc then
