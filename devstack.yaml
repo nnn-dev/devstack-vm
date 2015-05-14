@@ -18,7 +18,9 @@
     neutron_vpn: False
     neutron_fwaas: False
     ceph: False
-    keyring_config_dir: /home/vagrant/.local/share/python_keyring
+    use_lxc: False
+    dib: True
+    keyring_config_dir: /opt/stack/.local/share/python_keyring
 
   tasks:
     - name: create keyring config directory
@@ -34,24 +36,48 @@
     - name: install git
       apt: "name=git update_cache=yes"
       sudo: True
+
+    - name: install qemu-tools
+      apt: "name=qemu-tools update_cache=yes"
+      sudo: True
+      
+    - name: install kpartx
+      apt: "name=kpartx update_cache=yes"
+      sudo: True
+      
+    - name: install lxc
+      apt: "name=lxc update_cache=yes"
+      sudo: True
+      when: use_lxc
       
     - name: git config https instead git
       command: git config --global url."https://".insteadOf git://
       sudo: True
 
     - name: checkout devstack
-      git: "repo={{ git_base }}/openstack-dev/devstack.git dest=/home/vagrant/devstack version={{ version }}"
+      git: "repo={{ git_base }}/openstack-dev/devstack.git dest=/opt/stack/devstack version={{ version }}"
 
+    - name: checkout diskimage-builder
+      git: "repo={{ git_base }}/openstack/diskimage-builder.git dest=/opt/stack/diskimage-builder version=master"
+      when: dib
+
+    - name: checkout tripleo-image-elements
+      git: "repo={{ git_base }}/openstack/tripleo-image-elements.git dest=/opt/stack/tripleo-image-elements version=master"
+      when: dib
+      
     - name: checkout designate
-      git: "repo={{ git_base }}/openstack/designate.git dest=/home/vagrant/designate version={{ version }}"
+      git: "repo={{ git_base }}/openstack/designate.git dest=/opt/stack/designate version={{ version }}"
       when: designate
 
     - name: install designate extension
-      command: bash -c 'cd /home/vagrant/devstack; /home/vagrant/designate/contrib/devstack/install.sh'
+      command: bash -c 'cd /opt/stack/devstack; /opt/stack/designate/contrib/devstack/install.sh'
       when: designate
 
+    - name: remove localrc
+      file: path=/opt/stack/devstack/localrc state=absent
+      
     - name: local.conf
-      template: src=templates/local.conf.j2 dest=/home/vagrant/devstack/local.conf
+      template: src=templates/local.conf.j2 dest=/opt/stack/devstack/local.conf
 
     - name: source openrc in profile
       lineinfile: dest=/home/vagrant/.profile regexp=".*openrc" line='. /home/vagrant/devstack/openrc'

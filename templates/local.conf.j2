@@ -15,6 +15,7 @@ ADMIN_PASSWORD=openstack
 MYSQL_PASSWORD=openstack
 RABBIT_PASSWORD=openstack
 SERVICE_PASSWORD=openstack
+DATABASE_PASSWORD=openstack
 SERVICE_TOKEN=tokentoken
 SWIFT_HASH=tokentoken
 
@@ -28,6 +29,11 @@ HOST_IP={{ public_ip }}
 CIRROS_ARCH={{ cirros_arch }}
 
 USE_VENV=False
+
+{% if use_lxc %}
+VIRT_TYPE=libvirt
+LIBVIRT_TYPE=lxc
+{% endif %}
 
 {% if neutron %}
 #
@@ -67,6 +73,7 @@ enable_service trove
 enable_service tr-api
 enable_service tr-tmgr
 enable_service tr-cond
+TROVE_GUEST_IMAGE_URL=file:///opt/stack/trove.img
 {% endif %}
 
 {% if ceilometer %}
@@ -115,3 +122,4 @@ enable_service designate-sink
 enable_service designate-agent
 {% endif %}
 {% endif %}
+
