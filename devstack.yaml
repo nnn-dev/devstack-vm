@@ -5,8 +5,8 @@
     public_ip: 192.168.27.100
     version: master
     cirros_arch: x86_64
-    neutron: True
-    swift: True
+    neutron: False
+    swift: False
     security_groups: False
     tempest: False
     trove: False
@@ -96,7 +96,7 @@
       template: src=templates/local.conf.j2 dest=/opt/stack/devstack/local.conf
 
     - name: source openrc in profile
-      lineinfile: dest=/home/vagrant/.profile regexp=".*openrc" line='. /home/vagrant/devstack/openrc'
+      lineinfile: dest=/home/vagrant/.profile regexp=".*openrc" line='. /opt/stack/devstack/openrc'
 
     - command: /bin/ip a show eth2
       register: result
