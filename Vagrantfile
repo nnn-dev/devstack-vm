@@ -5,13 +5,15 @@
 # processor arch bits (32/64)
 config_arch=32
 # virtual machine memory
-vm_memory=3136
+vm_memory=2048
+# virtual machine cpu 
+vm_cpus=2
 # openstack version
 os_version='stable/juno'
 # components to install
 os_components=[
     'neutron',
-    'swift',
+#    'swift',
 #    'security_groups',
 #    'tempest',
     'trove',
@@ -27,16 +29,14 @@ os_components=[
 # vnc keymap
 vnc_keymap='en-us'
 # use lxc 
-use_lxc=false
-# size of btrfs in Mio
-use_lxc_size=2000
+use_lxc=true
 # trove databse
 #trove_db='mysql-5.6'
 trove_db='postgresql-9.3'
 # networks for vm
 # old=devstack-vm original, 3 network cards
 # one=only one network card + forwarding port
-vm_network='old'
+vm_network='one'
 # <<< Configuration>>>
 
 #using proxy?
@@ -73,12 +73,6 @@ Vagrant.configure("2") do |config|
     trove_db_name=trove_db.split('-')[0]
     trove_db_version=trove_db.split('-')[1]
     
-    if use_lxc then
-     lxc_opt='-e use_lxc=True'
-    else
-     lxc_opt=''
-    end
-    
     config.vm.box = "ubuntu/trusty#{config_arch}"
 
     # Ubuntu has a "bug" (https://github.com/mitchellh/vagrant/issues/1673)
@@ -90,6 +84,7 @@ Vagrant.configure("2") do |config|
       public_ip='127.0.0.1'
       config.vm.network "forwarded_port", guest: 80, host: 8080
       config.vm.network "forwarded_port", guest: 6080, host: 6080
+      config.vm.network "forwarded_port", guest: 6083, host: 6083
     else
      public_ip='192.168.27.100'
      # eth1, this will be the endpoint
@@ -104,7 +99,8 @@ Vagrant.configure("2") do |config|
     end
 
     config.vm.provider :virtualbox do |vb|
-        vb.customize ["modifyvm", :id, "--memory", vm_memory]
+        vb.memory = vm_memory
+        vb.cpus = vm_cpus
     end
    
     config.vm.provision :shell, inline: <<-SCRIPT
@@ -117,15 +113,14 @@ Vagrant.configure("2") do |config|
      DEBIAN_FRONTEND=noninteractive apt-get -qqy update
      DEBIAN_FRONTEND=noninteractive apt-get -qqy install ansible
      ansible-playbook /vagrant/devstack.yaml -v -e 'trove_db_name=#{trove_db_name}' -e 'trove_db_version=#{trove_db_version}' \
-     -e 'public_ip=#{public_ip}' #{lxc_opt} -e 'vnc_keymap=#{vnc_keymap}' \
-     -e 'os_version=#{os_version}' -e 'cirros_arch=#{cirros_arch}' #{components_params}
+     -e 'public_ip=#{public_ip}' -e 'vnc_keymap=#{vnc_keymap}' \
+     -e 'version=#{os_version}' -e 'cirros_arch=#{cirros_arch}' #{components_params}
      [ "$?" -ne '0' ] && exit 255
-     chown -R vagrant /home/vagrant/.
-     cd /opt/stack/devstack
-         if [ $(sudo -u vagrant env HOME=/home/vagrant screen -ls stack | wc -l) -gt '0' ]; then
+     chown -R vagrant /opt/stack/.
+     if [ $(sudo -u vagrant env HOME=/home/vagrant screen -ls stack | wc -l) -gt '2' ]; then
           echo 'unstack current openstack'
-          sudo -u vagrant env HOME=/home/vagrant ./unstack.sh
-         fi
+          sudo -u vagrant env HOME=/home/vagrant bash -c 'cd /opt/stack/devstack; ./unstack.sh'
+     fi
     SCRIPT
     if os_components.include?('trove')
      if config_arch == 32
@@ -139,6 +134,7 @@ Vagrant.configure("2") do |config|
       dib_notmpfs_opts=''
      end
      config.vm.provision :shell, inline: <<-SCRIPT
+
        export ELEMENTS_PATH=/opt/stack/tripleo-image-elements/elements:/opt/stack/trove-guest-image-elements/elements
        export DIB_CLOUD_INIT_DATASOURCES="ConfigDrive"
        export DISTRO=ubuntu
@@ -147,19 +143,20 @@ Vagrant.configure("2") do |config|
        [ ! -d /opt/stack/images ] && mkdir -p /opt/stack/images
        QEMU_IMG_OPTIONS=$(! $(qemu-img | grep -q 'version 1') && \
             echo "--qemu-img-options compat=0.10")
+	if [ ! -f /opt/stack/images/${DISTRO}-${DATASTORE}-${DATASTORE_VERSION}-guest-image.qcow2 ]; then 
        /opt/stack/diskimage-builder/bin/disk-image-create #{dib_notmpfs_opts} -a #{dib_arch} \
            -o /opt/stack/images/${DISTRO}-${DATASTORE}-${DATASTORE_VERSION}-guest-image \
            -x ${QEMU_IMG_OPTIONS} ${DISTRO} ${EXTRA_ELEMENTS} \
             vm heat-cfntools cloud-init-datasources \
             ${DISTRO}-${DATASTORE}-guest-image
+	fi
      SCRIPT
     end
     if use_lxc then
      config.vm.provision :shell, inline: '/sbin/modprobe nbd'
     end
     config.vm.provision :shell, inline: <<-SCRIPT
-     cd /opt/stack/devstack
-     sudo -u vagrant env HOME=/home/vagrant ./stack.sh
+     sudo -u vagrant env HOME=/home/vagrant bash -c 'cd /opt/stack/devstack; ./stack.sh'
      [ "$?" -ne '0' ] && exit $?
      ip a show eth2 && ovs-vsctl add-port br-ex eth2-he || :
      ansible-playbook /vagrant/horizon-workaround.yaml -v

@@ -18,7 +18,6 @@
     neutron_vpn: False
     neutron_fwaas: False
     ceph: False
-    use_lxc: False
     dib: True
     trove_db_name: mysql
     trove_db_version: 5.6
@@ -46,12 +45,7 @@
     - name: install kpartx
       apt: "name=kpartx update_cache=yes"
       sudo: True
-      
-    - name: install lxc
-      apt: "name=lxc update_cache=yes"
-      sudo: True
-      when: use_lxc
-            
+                  
     - name: git config https instead git
       command: git config --global url."https://".insteadOf git://
       sudo: True

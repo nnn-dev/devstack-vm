@@ -1,6 +1,11 @@
 [[post-config|$NOVA_CONF]]
+[rdp]
+enabled=true
+html5proxy_base_url=http://127.0.0.1:6083/
 [DEFAULT]
 vnc_keymap={{ vnc_keymap }}
+# allow use of all hosts
+#scheduler_default_filters = AllHostsFilter
 {% if ceilometer %}
 instance_usage_audit=true 
 
@@ -29,11 +34,6 @@ HOST_IP={{ public_ip }}
 CIRROS_ARCH={{ cirros_arch }}
 
 USE_VENV=False
-
-{% if use_lxc %}
-VIRT_TYPE=libvirt
-LIBVIRT_TYPE=lxc
-{% endif %}
 
 {% if neutron %}
 #
@@ -144,3 +144,6 @@ enable_service designate-agent
 {% endif %}
 {% endif %}
 
+disable_service n-novnc
+disable_service n-xvnc
+enable_service n-spice
