@@ -28,8 +28,6 @@ os_components=[
 ]
 # vnc keymap
 vnc_keymap='en-us'
-# use lxc 
-use_lxc=true
 # trove databse
 #trove_db='mysql-5.6'
 trove_db='postgresql-9.3'
@@ -104,6 +102,15 @@ Vagrant.configure("2") do |config|
     end
    
     config.vm.provision :shell, inline: <<-SCRIPT
+#create swap
+	if [ ! -f /file.swap ]; then
+	fallocate -l 3G /file.swap
+	chmod 600 /file.swap
+	mkswap /file.swap
+	swapon /file.swap
+	echo '/file.swap    none    swap    sw    0   0'>>/etc/fstab
+    fi
+	
      if [ ! -f /vagrant/devstack.yaml ]; then
         echo 'error synchronized folder /vagrant missing files!' >&2
         exit 255
@@ -148,12 +155,9 @@ Vagrant.configure("2") do |config|
            -o /opt/stack/images/${DISTRO}-${DATASTORE}-${DATASTORE_VERSION}-guest-image \
            -x ${QEMU_IMG_OPTIONS} ${DISTRO} ${EXTRA_ELEMENTS} \
             vm heat-cfntools cloud-init-datasources \
-            ${DISTRO}-${DATASTORE}-guest-image
+            ${DISTRO}-guest ${DISTRO}-${DATASTORE}-guest-image
 	fi
      SCRIPT
-    end
-    if use_lxc then
-     config.vm.provision :shell, inline: '/sbin/modprobe nbd'
     end
     config.vm.provision :shell, inline: <<-SCRIPT
      sudo -u vagrant env HOME=/home/vagrant bash -c 'cd /opt/stack/devstack; ./stack.sh'

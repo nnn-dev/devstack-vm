@@ -1,11 +1,8 @@
 [[post-config|$NOVA_CONF]]
-[rdp]
-enabled=true
-html5proxy_base_url=http://127.0.0.1:6083/
 [DEFAULT]
 vnc_keymap={{ vnc_keymap }}
 # allow use of all hosts
-#scheduler_default_filters = AllHostsFilter
+scheduler_default_filters = AllHostsFilter
 {% if ceilometer %}
 instance_usage_audit=true 
 
@@ -15,6 +12,9 @@ notification_driver=messagingv2
 {% endif %}
 
 [[local|localrc]]
+FLOATING_RANGE=192.168.1.224/27
+FIXED_RANGE=10.11.12.0/24
+FIXED_NETWORK_SIZE=256
 # Default passwords
 ADMIN_PASSWORD=openstack
 MYSQL_PASSWORD=openstack
@@ -143,7 +143,3 @@ enable_service designate-sink
 enable_service designate-agent
 {% endif %}
 {% endif %}
-
-disable_service n-novnc
-disable_service n-xvnc
-enable_service n-spice
