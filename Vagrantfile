@@ -155,7 +155,7 @@ Vagrant.configure("2") do |config|
            -o /opt/stack/images/${DISTRO}-${DATASTORE}-${DATASTORE_VERSION}-guest-image \
            -x ${QEMU_IMG_OPTIONS} ${DISTRO} ${EXTRA_ELEMENTS} \
             vm heat-cfntools cloud-init-datasources \
-            ${DISTRO}-guest ${DISTRO}-${DATASTORE}-guest-image
+            ${DISTRO} ${DISTRO}-${DATASTORE}-guest-image
 	fi
      SCRIPT
     end
