@@ -80,6 +80,7 @@ Vagrant.configure("2") do |config|
     
     if vm_network == 'one' then
       public_ip='127.0.0.1'
+      config.vm.network "private_network", ip: "171.15.19.31"
       config.vm.network "forwarded_port", guest: 80, host: 8080
       config.vm.network "forwarded_port", guest: 6080, host: 6080
       config.vm.network "forwarded_port", guest: 6083, host: 6083
